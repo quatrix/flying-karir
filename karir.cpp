@@ -2,7 +2,7 @@
 #include <cstdlib>
 #include <math.h>
 #include <SDL.h>
-#include <SDL_draw.h>
+//#include <SDL_draw.h>
 #include "CSurface.h"
 #include "CEvent.h"
 
@@ -38,6 +38,9 @@ class Point {
 	double space_max_x;
 	double space_max_y;
 
+	private:
+	double rotate;
+
 
 	public:
 	double degree;
@@ -47,12 +50,17 @@ class Point {
 	Point();
 	void NextPoint();
 	void Rotate(double);
+	void Rotate();
 };
 
-Point::Point() : degree(0) {}
+Point::Point() : degree(0), rotate(0) {}
 
 void Point::Rotate(double i) { 
-	degree += i;
+	rotate += i;
+}
+
+void Point::Rotate() { 
+	degree += rotate;
 	cout << degree << endl;
 	
 	if (degree < 0) 
@@ -64,6 +72,9 @@ void Point::Rotate(double i) {
 
 void Point::NextPoint() {
 	Direction d;
+	Rotate();
+
+	cout << "rotate: " << rotate << endl;
 	
 	d.CalcFactor(degree);
 	
@@ -104,6 +115,7 @@ class DirectionDrawer : public CEvent {
 	void Render();
 	void OnEvent(SDL_Event*);
 	void OnKeyDown(SDLKey, SDLMod, Uint16);
+	void OnKeyUp(SDLKey, SDLMod, Uint16);
 };
 
 DirectionDrawer::DirectionDrawer() {
@@ -119,11 +131,30 @@ void DirectionDrawer::OnKeyDown(SDLKey sym, SDLMod mod, Uint16 unicode) {
 			break;
 
 		case SDLK_LEFT:
-			point.Rotate(-30);
+			point.Rotate(-1);
 			break;
 
 		case SDLK_RIGHT:
-			point.Rotate(30);
+			point.Rotate(1);
+			break;
+
+		case SDLK_DOWN:
+			break;
+
+		case SDLK_UP:
+			break;
+
+	}
+}
+
+void DirectionDrawer::OnKeyUp(SDLKey sym, SDLMod mod, Uint16 unicode) {
+	switch(sym) { 
+		case SDLK_LEFT:
+			point.Rotate(1);
+			break;
+
+		case SDLK_RIGHT:
+			point.Rotate(-1);
 			break;
 
 		case SDLK_DOWN:
@@ -138,7 +169,7 @@ void DirectionDrawer::OnKeyDown(SDLKey sym, SDLMod mod, Uint16 unicode) {
 void DirectionDrawer::Init() { 
 	point.x = 300;
 	point.y = 300;
-	point.speed = 3;
+	point.speed = 1;
 	point.space_max_x = 600;
 	point.space_max_y = 600;
 }
@@ -175,7 +206,7 @@ void DirectionDrawer::MainLoop() {
 
 		//cout << point.x << "\t" << point.y << endl;
 		Render();
-	//	SDL_Delay(100);
+		//SDL_Delay(1);
 	}
 }
 
@@ -184,7 +215,8 @@ void DirectionDrawer::Render() {
 	//Draw_Pixel(Surf_Display,point.x,point.y,(rand()));
 	//Draw_Line(Surf_Display,point.last_x,point.last_y,point.x,point.y,(rand()));
 	SDL_FillRect(Surf_Display,NULL,0);
-	CSurface::OnDraw(Surf_Display,Surf_Point,point.x,point.y,(point.degree),0,30,30);
+	CSurface::OnDraw(Surf_Display,Surf_Point,point.x,point.y,(point.degree * 30),0,30,30);
+	//CSurface::OnDraw(Surf_Display,Surf_Point,point.x,point.y, 0, 0, 30, 30);
 	SDL_Flip(Surf_Display);
 }
 
