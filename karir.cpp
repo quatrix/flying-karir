@@ -2,13 +2,15 @@
 #include <cstdlib>
 #include <math.h>
 #include <SDL.h>
-//#include <SDL_draw.h>
 #include "CSurface.h"
 #include "CEvent.h"
+#include <SDL_rotozoom.h>
+#include <vector>
 
 #define PI 3.14159265
 
 using namespace std;
+typedef vector<SDL_Surface*>::size_type vsurf_sz;
 
 class Direction {
 	public:
@@ -30,6 +32,7 @@ void Direction::CalcFactor(double degree) {
 
 // this is classic oo right there
 class Point {
+
 	public:
 	double x;
 	double y;
@@ -40,6 +43,7 @@ class Point {
 
 	private:
 	double rotate;
+	vector<SDL_Surface*> ship_surf;
 
 
 	public:
@@ -47,11 +51,14 @@ class Point {
 	double speed;
 	double rotate_speed;
 
+
 	public:
 	Point();
 	void NextPoint();
 	void Rotate(double);
 	void Rotate();
+	void LoadSurface(char*);
+  SDL_Surface* GetSurface();
 };
 
 Point::Point() : degree(0), rotate(0),  rotate_speed(0) {}
@@ -60,14 +67,29 @@ void Point::Rotate(double i) {
 	rotate += i;
 }
 
+void Point::LoadSurface(char* filename) {
+
+	SDL_Surface* origin =  CSurface::OnLoad(filename);
+
+	for (vsurf_sz i = 0; i <= 360; i++) {
+		SDL_Surface* tmp_surf = rotozoomSurface(origin, i, 1.0, 0);
+		ship_surf.push_back(tmp_surf);	
+	}
+	
+}
+
+SDL_Surface* Point::GetSurface() {
+	return ship_surf[(vsurf_sz)degree];
+}
+
 void Point::Rotate() { 
 	degree += rotate;
 	cout << degree << endl;
 	
 	if (degree < 0) 
-		degree = 330;
+		degree = 360 - rotate_speed;
 	else if (degree > 360) 
-		degree = 30;
+		degree = rotate_speed;
 	cout << degree << endl;
 }
 
@@ -82,7 +104,7 @@ void Point::NextPoint() {
 	last_x = x;
 	last_y = y;
 
-	x += speed * d.y_factor;
+	x -= speed * d.y_factor;
 	y -= speed * d.x_factor;
 
 	if (x > space_max_x) 
@@ -102,7 +124,9 @@ void Point::NextPoint() {
 class DirectionDrawer : public CEvent {
 	private:
 	SDL_Surface*	Surf_Display;
-	SDL_Surface*	Surf_Point;
+	SDL_Surface* 	Surf_BG;
+	SDL_Surface*	Surf_Ship1;
+	SDL_Surface*	Surf_Ship2;
 	int Running;
 
 	private:
@@ -121,7 +145,9 @@ class DirectionDrawer : public CEvent {
 
 DirectionDrawer::DirectionDrawer() {
 	Surf_Display = NULL;
-	Surf_Point = NULL;
+	Surf_Ship1 	 = NULL;
+	Surf_Ship2 	 = NULL;
+	Surf_BG    	 = NULL;
 	Running = 1;
 }
 
@@ -131,11 +157,11 @@ void DirectionDrawer::OnKeyDown(SDLKey sym, SDLMod mod, Uint16 unicode) {
 			Running = 0;
 			break;
 
-		case SDLK_LEFT:
+		case SDLK_RIGHT:
 			point.Rotate((-1 * point.rotate_speed));
 			break;
 
-		case SDLK_RIGHT:
+		case SDLK_LEFT:
 			point.Rotate(point.rotate_speed);
 			break;
 
@@ -150,11 +176,11 @@ void DirectionDrawer::OnKeyDown(SDLKey sym, SDLMod mod, Uint16 unicode) {
 
 void DirectionDrawer::OnKeyUp(SDLKey sym, SDLMod mod, Uint16 unicode) {
 	switch(sym) { 
-		case SDLK_LEFT:
+		case SDLK_RIGHT:
 			point.Rotate(point.rotate_speed);
 			break;
 
-		case SDLK_RIGHT:
+		case SDLK_LEFT:
 			point.Rotate((-1 * point.rotate_speed));
 			break;
 
@@ -174,6 +200,7 @@ void DirectionDrawer::Init() {
 	point.rotate_speed = 1.5;
 	point.space_max_x = 600;
 	point.space_max_y = 600;
+	point.LoadSurface("./gfx/Ship1.png");
 }
 
 bool DirectionDrawer::PrepSDL() { 
@@ -183,9 +210,15 @@ bool DirectionDrawer::PrepSDL() {
 	if ((Surf_Display = SDL_SetVideoMode(600,600,32, SDL_HWSURFACE | SDL_DOUBLEBUF)) == NULL)
 		return false;
 
-	if ((Surf_Point = CSurface::OnLoad("./karir.png")) == NULL) {
+
+/*	if ((Surf_Ship1 = CSurface::OnLoad("./gfx/ship1_montage.png")) == NULL) {
 		return false;
 	}
+
+	if ((Surf_Ship2 = CSurface::OnLoad("./gfx/ship2_montage.png")) == NULL) {
+		return false;
+	}
+*/
 
 	return true; 
 }
@@ -217,8 +250,9 @@ void DirectionDrawer::Render() {
 	//Draw_Pixel(Surf_Display,point.x,point.y,(rand()));
 	//Draw_Line(Surf_Display,point.last_x,point.last_y,point.x,point.y,(rand()));
 	SDL_FillRect(Surf_Display,NULL,0);
-	CSurface::OnDraw(Surf_Display,Surf_Point,point.x,point.y,((int)point.degree * 30),0,30,30);
+//	CSurface::OnDraw(Surf_Display,Surf_Ship1,point.x,point.y,((int)point.degree * 45),0,45,45);
 	//CSurface::OnDraw(Surf_Display,Surf_Point,point.x,point.y, 0, 0, 30, 30);
+	CSurface::OnDraw(Surf_Display,point.GetSurface(), point.x, point.y);
 	SDL_Flip(Surf_Display);
 }
 
