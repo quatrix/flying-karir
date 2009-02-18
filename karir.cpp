@@ -72,7 +72,7 @@ void Point::LoadSurface(char* filename) {
 	SDL_Surface* origin =  CSurface::OnLoad(filename);
 
 	for (vsurf_sz i = 0; i <= 360; i++) {
-		SDL_Surface* tmp_surf = rotozoomSurface(origin, i, 2.0, 0);
+		SDL_Surface* tmp_surf = rotozoomSurface(origin, i, 1.0, 0);
 		ship_surf.push_back(tmp_surf);	
 	}
 	
@@ -131,6 +131,7 @@ class DirectionDrawer : public CEvent {
 
 	private:
 	Point point;
+	Point point2;
 
 	public:
 	DirectionDrawer();
@@ -171,6 +172,15 @@ void DirectionDrawer::OnKeyDown(SDLKey sym, SDLMod mod, Uint16 unicode) {
 		case SDLK_UP:
 			break;
 
+// player 2 		
+		case SDLK_d:
+			point2.Rotate((-1 * point2.rotate_speed));
+			break;
+
+		case SDLK_a:
+			point2.Rotate(point2.rotate_speed);
+			break;
+
 	}
 }
 
@@ -189,36 +199,46 @@ void DirectionDrawer::OnKeyUp(SDLKey sym, SDLMod mod, Uint16 unicode) {
 
 		case SDLK_UP:
 			break;
+// player 2
+		case SDLK_d:
+			point2.Rotate(point2.rotate_speed);
+			break;
 
+		case SDLK_a:
+			point2.Rotate((-1 * point2.rotate_speed));
+			break;
 	}
 }
 
 void DirectionDrawer::Init() { 
-	point.x = 300;
-	point.y = 300;
-	point.speed = 0;
+	point.x = 500;
+	point.y = 500;
+	point.speed = 1.2;
 	point.rotate_speed = 1.5;
-	point.space_max_x = 600;
+	point.space_max_x = 800;
 	point.space_max_y = 600;
-	point.LoadSurface("./gfx/Ship2.png");
+	point.LoadSurface("./gfx/Ship1.png");
+
+
+	point2.x = 100;
+	point2.y = 100;
+	point2.speed = 1.2;
+	point2.rotate_speed = 1.5;
+	point2.space_max_x = 800;
+	point2.space_max_y = 600;
+	point2.LoadSurface("./gfx/Ship2.png");
+
 }
 
 bool DirectionDrawer::PrepSDL() { 
 	if(SDL_Init(SDL_INIT_EVERYTHING) < 0)
 		return false;
 
-	if ((Surf_Display = SDL_SetVideoMode(600,600,32, SDL_HWSURFACE | SDL_DOUBLEBUF)) == NULL)
+	if ((Surf_Display = SDL_SetVideoMode(800,600,32, SDL_HWSURFACE | SDL_DOUBLEBUF)) == NULL)
 		return false;
 
+	Surf_BG =  CSurface::OnLoad("./gfx/bg.jpg");
 
-/*	if ((Surf_Ship1 = CSurface::OnLoad("./gfx/ship1_montage.png")) == NULL) {
-		return false;
-	}
-
-	if ((Surf_Ship2 = CSurface::OnLoad("./gfx/ship2_montage.png")) == NULL) {
-		return false;
-	}
-*/
 
 	return true; 
 }
@@ -238,6 +258,7 @@ void DirectionDrawer::MainLoop() {
 			OnEvent(&event);
 
 		point.NextPoint();
+		point2.NextPoint();
 
 		//cout << point.x << "\t" << point.y << endl;
 		Render();
@@ -249,10 +270,21 @@ void DirectionDrawer::Render() {
 	//Draw_Circle(Surf_Display,point.x,point.y,(rand() % 2), (rand()));
 	//Draw_Pixel(Surf_Display,point.x,point.y,(rand()));
 	//Draw_Line(Surf_Display,point.last_x,point.last_y,point.x,point.y,(rand()));
-	SDL_FillRect(Surf_Display,NULL,0);
+	//SDL_FillRect(Surf_Display,NULL,0);
 //	CSurface::OnDraw(Surf_Display,Surf_Ship1,point.x,point.y,((int)point.degree * 45),0,45,45);
 	//CSurface::OnDraw(Surf_Display,Surf_Point,point.x,point.y, 0, 0, 30, 30);
-	CSurface::OnDraw(Surf_Display,point.GetSurface(), point.x, point.y);
+
+	//background
+	CSurface::OnDraw(Surf_Display,Surf_BG, 0, 0);
+
+	//first ship
+	SDL_Surface* tmp_surf = point.GetSurface();
+	CSurface::OnDraw(Surf_Display,tmp_surf, (point.x - (tmp_surf->w / 2)), (point.y - (tmp_surf->h /2 )));
+
+	SDL_Surface* tmp2_surf = point2.GetSurface();
+	CSurface::OnDraw(Surf_Display,tmp2_surf, (point2.x - (tmp2_surf->w / 2)), (point2.y - (tmp2_surf->h /2 )));
+
+	// sdl stuff
 	SDL_Flip(Surf_Display);
 }
 
