@@ -72,7 +72,7 @@ void Point::LoadSurface(char* filename) {
 	SDL_Surface* origin =  CSurface::OnLoad(filename);
 
 	for (vsurf_sz i = 0; i <= 360; i++) {
-		SDL_Surface* tmp_surf = rotozoomSurface(origin, i, 1.0, 0);
+		SDL_Surface* tmp_surf = rotozoomSurface(origin, i, 2.0, 0);
 		ship_surf.push_back(tmp_surf);	
 	}
 	
@@ -196,11 +196,11 @@ void DirectionDrawer::OnKeyUp(SDLKey sym, SDLMod mod, Uint16 unicode) {
 void DirectionDrawer::Init() { 
 	point.x = 300;
 	point.y = 300;
-	point.speed = 0.5;
+	point.speed = 0;
 	point.rotate_speed = 1.5;
 	point.space_max_x = 600;
 	point.space_max_y = 600;
-	point.LoadSurface("./gfx/Ship1.png");
+	point.LoadSurface("./gfx/Ship2.png");
 }
 
 bool DirectionDrawer::PrepSDL() { 
