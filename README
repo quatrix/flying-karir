@@ -1,0 +1,1 @@
+ g++ karir.cpp CSurface.cpp CEvent.cpp `sdl-config --cflags --libs` -lSDL_draw -lSDL_image -o karir && ./karir   
