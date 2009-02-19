@@ -75,40 +75,39 @@ void Point::Accelerating(double i) {
 void Point::Accelerate() { 
 //	cout << "degree: " << degree << " degree_vector: " << degree_vector << " delta: " << (degree - degree_vector) << endl;
 
-	cout << "DEG-DEGVEC: " << (degree - degree_vector) << endl;
-	cout << "degree: " << degree << " degree_vector: " << degree_vector << endl;
+	//cout << "DEG-DEGVEC: " << (degree - degree_vector) << endl;
+	//cout << "degree: " << degree << " degree_vector: " << degree_vector << endl;
 
-
-	if ((degree - degree_vector) > 270 ) {
-		cout << "#########################\n";
-		degree_vector = 0;
-	}
-
-	if ((degree - degree_vector) < -270 ) {
-		cout << "******************************\n";
-		degree_vector = 360;
-	}
 
 	// if direction changes we summerizs the vectors
-	double new_speed = 0.5;
+	double new_speed = 1.2;
 
+	double orig_x = speed * cos((degree_vector * PI / 180));
+	double orig_y = speed * sin((degree_vector * PI / 180));
 
-	double orig_x = speed * cos((degree_vector * PI / 720));
-	double orig_y = speed * sin((degree_vector * PI /  720));
-
-	double new_x = new_speed * cos((degree * PI / 720));
-	double new_y = new_speed * sin((degree * PI / 720));
+	double new_x = new_speed * cos((degree * PI / 180));
+	double new_y = new_speed * sin((degree * PI / 180));
 
 	double sum_x = orig_x + new_x;
 	double sum_y = orig_y + new_y;
 
 	double real_new_speed = sqrt(sum_x * sum_x + sum_y * sum_y);
 	
-	cout << "degree_vector: " << degree_vector << endl;
-	double new_degree = atan(sum_y / sum_x) *  720 / PI;
-	cout << "new_degree: " << new_degree << endl;
+//	cout << "degree_vector: " << degree_vector << endl;
+	double new_degree = atan(sum_y / sum_x) * 180 / PI;
+
+//	if (sum_x > 0 &&
+
+//	cout << "new_degree: " << new_degree << endl;
+	cout << "degree: " << new_degree << " x: " << sum_x << " y: " << sum_y << endl;
 	//new_degree = degree;
 
+	if (sum_x < 0 && sum_y >0)
+		new_degree += 180;
+	else if (sum_x < 0 && sum_y < 0)
+		new_degree += 180;
+	else if (sum_x > 0 && sum_y < 0) 
+		new_degree += 360; 
 
 //	cout << "HEH: " << (degree - new_degree) << endl;
 	
