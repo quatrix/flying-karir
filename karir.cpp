@@ -29,7 +29,7 @@ void Direction::CalcFactor(double degree) {
 
 	//cout << x_factor << "\t" << y_factor << endl;
 }
-
+	
 // this is classic oo right there
 class Point {
 
@@ -43,14 +43,16 @@ class Point {
 
 	private:
 	double rotate;
+	double accelerating;
 	vector<SDL_Surface*> ship_surf;
 
 
 	public:
 	double degree;
+	double degree_vector;
 	double speed;
 	double rotate_speed;
-
+	double max_speed;
 
 	public:
 	Point();
@@ -59,9 +61,87 @@ class Point {
 	void Rotate();
 	void LoadSurface(char*);
   SDL_Surface* GetSurface();
+	void Accelerate();
+	void Decelerate();
+	void Accelerating(double);
 };
 
-Point::Point() : degree(0), rotate(0),  rotate_speed(0) {}
+Point::Point() : accelerating(0), max_speed(0), degree(0), degree_vector(0), rotate(0),  rotate_speed(0), speed(0) {}
+
+void Point::Accelerating(double i) {
+	accelerating += i;
+}
+
+void Point::Accelerate() { 
+//	cout << "degree: " << degree << " degree_vector: " << degree_vector << " delta: " << (degree - degree_vector) << endl;
+
+	cout << "DEG-DEGVEC: " << (degree - degree_vector) << endl;
+	cout << "degree: " << degree << " degree_vector: " << degree_vector << endl;
+
+
+	if ((degree - degree_vector) > 270 ) {
+		cout << "#########################\n";
+		degree_vector = 0;
+	}
+
+	if ((degree - degree_vector) < -270 ) {
+		cout << "******************************\n";
+		degree_vector = 360;
+	}
+
+	// if direction changes we summerizs the vectors
+	double new_speed = 0.5;
+
+
+	double orig_x = speed * cos((degree_vector * PI / 720));
+	double orig_y = speed * sin((degree_vector * PI /  720));
+
+	double new_x = new_speed * cos((degree * PI / 720));
+	double new_y = new_speed * sin((degree * PI / 720));
+
+	double sum_x = orig_x + new_x;
+	double sum_y = orig_y + new_y;
+
+	double real_new_speed = sqrt(sum_x * sum_x + sum_y * sum_y);
+	
+	cout << "degree_vector: " << degree_vector << endl;
+	double new_degree = atan(sum_y / sum_x) *  720 / PI;
+	cout << "new_degree: " << new_degree << endl;
+	//new_degree = degree;
+
+
+//	cout << "HEH: " << (degree - new_degree) << endl;
+	
+	
+/*
+	if ((degree - new_degree) > 200) {
+		new_degree = degree;
+	}
+
+	if ((degree - new_degree) < -200) {
+		new_degree = degree;
+	}
+*/
+//	cout << "orig_x: " << orig_x << " orig_y: " << orig_y << endl;
+//	cout << "new_x: " << new_x << " new_y: " << new_y << endl;
+//	cout << "sum_x: " << sum_x << " sum_y: " << sum_y << endl;
+//	cout << "degree: " << degree << endl;
+//	cout << "new_degree: " << new_degree << endl;
+
+	degree_vector = new_degree;
+	if (speed < max_speed) 
+		speed = speed + real_new_speed;
+
+//	cout << "speed: " << speed << endl;
+}
+
+void Point::Decelerate() { 
+//	degree_vector = degree - 180;
+	if (speed > 0) 
+		speed = speed - 0.1;
+
+	cout << "speed: " << speed << endl;
+}
 
 void Point::Rotate(double i) { 
 	rotate += i;
@@ -84,22 +164,30 @@ SDL_Surface* Point::GetSurface() {
 
 void Point::Rotate() { 
 	degree += rotate;
-	cout << degree << endl;
+	//cout << degree << endl;
 	
 	if (degree < 0) 
 		degree = 360 - rotate_speed;
 	else if (degree > 360) 
 		degree = rotate_speed;
-	cout << degree << endl;
+	//cout << degree << endl;
 }
 
 void Point::NextPoint() {
 	Direction d;
 	Rotate();
 
-	cout << "rotate: " << rotate << endl;
+	//cout << "accelerating: " << accelerating << endl;
 	
-	d.CalcFactor(degree);
+	if (accelerating > 0) 
+		Accelerate();
+	else if (accelerating < 0)
+		Decelerate();
+
+	//cout << "rotate: " << rotate << endl;
+	//cout << "degree_vector: " << degree_vector << endl;
+	
+	d.CalcFactor(degree_vector);
 	
 	last_x = x;
 	last_y = y;
@@ -167,9 +255,12 @@ void DirectionDrawer::OnKeyDown(SDLKey sym, SDLMod mod, Uint16 unicode) {
 			break;
 
 		case SDLK_DOWN:
+			point.Accelerating(-1);
 			break;
 
 		case SDLK_UP:
+			point.Accelerating(1);
+			
 			break;
 
 // player 2 		
@@ -195,9 +286,11 @@ void DirectionDrawer::OnKeyUp(SDLKey sym, SDLMod mod, Uint16 unicode) {
 			break;
 
 		case SDLK_DOWN:
+			point.Accelerating(1);
 			break;
 
 		case SDLK_UP:
+			point.Accelerating(-1);
 			break;
 // player 2
 		case SDLK_d:
@@ -213,8 +306,9 @@ void DirectionDrawer::OnKeyUp(SDLKey sym, SDLMod mod, Uint16 unicode) {
 void DirectionDrawer::Init() { 
 	point.x = 500;
 	point.y = 500;
-	point.speed = 1.2;
-	point.rotate_speed = 1.5;
+	point.speed = 0.1;
+	point.max_speed = 6;
+	point.rotate_speed = 4.5;
 	point.space_max_x = 800;
 	point.space_max_y = 600;
 	point.LoadSurface("./gfx/Ship1.png");
@@ -222,8 +316,9 @@ void DirectionDrawer::Init() {
 
 	point2.x = 100;
 	point2.y = 100;
-	point2.speed = 1.2;
-	point2.rotate_speed = 1.5;
+	point2.speed = 0.1;
+	point2.max_speed = 6;
+	point2.rotate_speed = 4.5;
 	point2.space_max_x = 800;
 	point2.space_max_y = 600;
 	point2.LoadSurface("./gfx/Ship2.png");
@@ -237,8 +332,7 @@ bool DirectionDrawer::PrepSDL() {
 	if ((Surf_Display = SDL_SetVideoMode(800,600,32, SDL_HWSURFACE | SDL_DOUBLEBUF)) == NULL)
 		return false;
 
-	Surf_BG =  CSurface::OnLoad("./gfx/bg.jpg");
-
+	Surf_BG =  CSurface::OnLoad("./gfx/bg.png");
 
 	return true; 
 }
@@ -262,7 +356,7 @@ void DirectionDrawer::MainLoop() {
 
 		//cout << point.x << "\t" << point.y << endl;
 		Render();
-		//SDL_Delay(1);
+		//SDL_Delay(500);
 	}
 }
 
