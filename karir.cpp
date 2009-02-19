@@ -7,10 +7,17 @@
 #include <SDL_rotozoom.h>
 #include <vector>
 
-#define PI 3.14159265
-
 using namespace std;
 typedef vector<SDL_Surface*>::size_type vsurf_sz;
+
+
+double rad (double i) { 
+	return i * M_PI / 180;
+}
+
+double deg (double i) { 
+	return i * 180 / M_PI;
+}
 
 class Direction {
 	public:
@@ -22,10 +29,8 @@ class Direction {
 };
 
 void Direction::CalcFactor(double degree) {
-	static const double arcus = 2. * PI / 360; 
-	
-	x_factor = cos( degree * arcus );
-	y_factor = sin( degree * arcus );
+	x_factor = cos( rad(degree) );
+	y_factor = sin( rad(degree) );
 
 	//cout << x_factor << "\t" << y_factor << endl;
 }
@@ -53,6 +58,7 @@ class Point {
 	double speed;
 	double rotate_speed;
 	double max_speed;
+	double acc_speed; 
 
 	public:
 	Point();
@@ -66,41 +72,27 @@ class Point {
 	void Accelerating(double);
 };
 
-Point::Point() : accelerating(0), max_speed(0), degree(0), degree_vector(0), rotate(0),  rotate_speed(0), speed(0) {}
+Point::Point() : accelerating(0), acc_speed(0), max_speed(0), degree(0), degree_vector(0), rotate(0),  rotate_speed(0), speed(0) {}
 
 void Point::Accelerating(double i) {
 	accelerating += i;
 }
 
 void Point::Accelerate() { 
-//	cout << "degree: " << degree << " degree_vector: " << degree_vector << " delta: " << (degree - degree_vector) << endl;
+	double orig_x = speed * cos(rad(degree_vector));
+	double orig_y = speed * sin(rad(degree_vector));
 
-	//cout << "DEG-DEGVEC: " << (degree - degree_vector) << endl;
-	//cout << "degree: " << degree << " degree_vector: " << degree_vector << endl;
-
-
-	// if direction changes we summerizs the vectors
-	double new_speed = 1.2;
-
-	double orig_x = speed * cos((degree_vector * PI / 180));
-	double orig_y = speed * sin((degree_vector * PI / 180));
-
-	double new_x = new_speed * cos((degree * PI / 180));
-	double new_y = new_speed * sin((degree * PI / 180));
+	double new_x = acc_speed * cos(rad(degree));
+	double new_y = acc_speed * sin(rad(degree));
 
 	double sum_x = orig_x + new_x;
 	double sum_y = orig_y + new_y;
 
-	double real_new_speed = sqrt(sum_x * sum_x + sum_y * sum_y);
+	double new_speed = sqrt(sum_x * sum_x + sum_y * sum_y);
 	
-//	cout << "degree_vector: " << degree_vector << endl;
-	double new_degree = atan(sum_y / sum_x) * 180 / PI;
+	double new_degree = deg(atan(sum_y / sum_x));
 
-//	if (sum_x > 0 &&
-
-//	cout << "new_degree: " << new_degree << endl;
 	cout << "degree: " << new_degree << " x: " << sum_x << " y: " << sum_y << endl;
-	//new_degree = degree;
 
 	if (sum_x < 0 && sum_y >0)
 		new_degree += 180;
@@ -109,33 +101,14 @@ void Point::Accelerate() {
 	else if (sum_x > 0 && sum_y < 0) 
 		new_degree += 360; 
 
-//	cout << "HEH: " << (degree - new_degree) << endl;
-	
-	
-/*
-	if ((degree - new_degree) > 200) {
-		new_degree = degree;
-	}
-
-	if ((degree - new_degree) < -200) {
-		new_degree = degree;
-	}
-*/
-//	cout << "orig_x: " << orig_x << " orig_y: " << orig_y << endl;
-//	cout << "new_x: " << new_x << " new_y: " << new_y << endl;
-//	cout << "sum_x: " << sum_x << " sum_y: " << sum_y << endl;
-//	cout << "degree: " << degree << endl;
-//	cout << "new_degree: " << new_degree << endl;
-
 	degree_vector = new_degree;
 	if (speed < max_speed) 
-		speed = speed + real_new_speed;
+		speed = speed + new_speed;
 
-//	cout << "speed: " << speed << endl;
 }
 
 void Point::Decelerate() { 
-//	degree_vector = degree - 180;
+	degree_vector = degree - 180;
 	if (speed > 0) 
 		speed = speed - 0.1;
 
@@ -305,9 +278,10 @@ void DirectionDrawer::OnKeyUp(SDLKey sym, SDLMod mod, Uint16 unicode) {
 void DirectionDrawer::Init() { 
 	point.x = 500;
 	point.y = 500;
-	point.speed = 0.1;
-	point.max_speed = 6;
-	point.rotate_speed = 4.5;
+	point.speed = 1;
+	point.acc_speed = 5;
+	point.max_speed = 20;
+	point.rotate_speed = 10;
 	point.space_max_x = 800;
 	point.space_max_y = 600;
 	point.LoadSurface("./gfx/Ship1.png");
@@ -315,9 +289,10 @@ void DirectionDrawer::Init() {
 
 	point2.x = 100;
 	point2.y = 100;
-	point2.speed = 0.1;
-	point2.max_speed = 6;
-	point2.rotate_speed = 4.5;
+	point2.speed = 1;
+	point.acc_speed = 10;
+	point2.max_speed = 30;
+	point2.rotate_speed = 10;
 	point2.space_max_x = 800;
 	point2.space_max_y = 600;
 	point2.LoadSurface("./gfx/Ship2.png");
@@ -355,7 +330,7 @@ void DirectionDrawer::MainLoop() {
 
 		//cout << point.x << "\t" << point.y << endl;
 		Render();
-		//SDL_Delay(500);
+		SDL_Delay(50);
 	}
 }
 
