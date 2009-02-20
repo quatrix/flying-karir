@@ -8,6 +8,7 @@
 #include <SDL_rotozoom.h>
 #include <SDL_draw.h>
 #include <SDL_framerate.h>
+#include <SDL_gfxPrimitives.h>
 
 #include "CSurface.h"
 #include "CEvent.h"
@@ -25,6 +26,7 @@ class DirectionDrawer : public CEvent {
 	SDL_Surface*	Surf_Ship1;
 	SDL_Surface*	Surf_Ship2;
 	int Running;
+	int Pause;
 
 	private:
 	Ship ship;
@@ -47,12 +49,17 @@ DirectionDrawer::DirectionDrawer() {
 	Surf_Ship2	= NULL;
 	Surf_BG		= NULL;
 	Running		= 1;
+	Pause		= -1;
 }
 
 void DirectionDrawer::OnKeyDown(SDLKey sym, SDLMod mod, Uint16 unicode) {
 	switch(sym) { 
 		case SDLK_ESCAPE: 
 			Running = 0;
+			break;
+
+		case SDLK_SPACE: 
+			Pause *= -1;
 			break;
 
 		case SDLK_RIGHT:
@@ -121,7 +128,7 @@ void DirectionDrawer::Init() {
 
 	ship.ShipCords.x = 500;
 	ship.ShipCords.y = 500;
-	ship.acc_speed = 1.5;
+	ship.acc_speed = 3.5;
 	ship.max_speed = 10;
 	ship.rotate_speed = 10;
 	ship.LoadSurface("./gfx/Ship1.png");
@@ -153,12 +160,12 @@ void DirectionDrawer::MainLoop() {
 		while (SDL_PollEvent(&event))
 			OnEvent(&event);
 
-		ship.NextShip();
-		//ship2.NextShip();
+		if (Pause < 0) { 
+			ship.NextShip();
 
-		//cout << ship.x << "\t" << ship.y << endl;
-		Render();
-		SDL_framerateDelay( FPS_manager );
+			Render();
+			SDL_framerateDelay( FPS_manager );
+		}
 
 	}
 }
@@ -174,28 +181,24 @@ void DirectionDrawer::Render() {
 	//background
 	CSurface::OnDraw(Surf_Display,Surf_BG, 0, 0);
 
-	//first ship
+	// draw ship_vec
+	double line_end_x = ship.ShipCords.x + (  ship.ship_vec.force * ship.ship_vec.X());
+	double line_end_y = ship.ShipCords.y - (  ship.ship_vec.force * ship.ship_vec.Y());
+	lineRGBA(Surf_Display,ship.ShipCords.x,ship.ShipCords.y,line_end_x,line_end_y,255,0,0,255);
 
 
-
-
+	// movement traces 
 	for (list<Cords>::const_iterator p = ship.Last_ShipCords.begin(); p != ship.Last_ShipCords.end(); p++) { 
-//		SDL_Surface* tmp_surf = ship.GetSurface((vsurf_sz)p->degree);
-//		SDL_SetAlpha(tmp_surf, SDL_SRCALPHA | SDL_RLEACCEL , 5);
-//		SDL_Surface* xxx = SDL_DisplayFormat(tmp_surf); 
-//		CSurface::OnDraw(Surf_Display,xxx, (p->x - (tmp_surf->w / 2)), (p->y - (tmp_surf->h /2 )));
-
 		Draw_FillCircle(Surf_Display,p->x,p->y,4,55555);
-
 	}
 
+	// ship itself
 	SDL_Surface* tmp_surf = ship.GetSurface((vsurf_sz)ship.ShipCords.degree);
 	CSurface::OnDraw(Surf_Display,tmp_surf, (ship.ShipCords.x - (tmp_surf->w / 2)), (ship.ShipCords.y - (tmp_surf->h /2 )));
-/*
-	SDL_Surface* tmp2_surf = ship2.GetSurface();
-	CSurface::OnDraw(Surf_Display,tmp2_surf, (ship2.x - (tmp2_surf->w / 2)), (ship2.y - (tmp2_surf->h /2 )));
-*/
-	// sdl stuff
+
+
+
+	
 	SDL_Flip(Surf_Display);
 }
 

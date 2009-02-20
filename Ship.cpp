@@ -1,9 +1,21 @@
 #include "ship.hpp"
+#include <iostream>
+
+using std::cout;
+using std::endl;
 
 
 Ship::Ship() : accelerating(0), acc_speed(0), max_speed(0),  rotate(0),  rotate_speed(0) {}
 
 void Ship::Accelerating(double i) {
+	if (i > 0)  
+		cout << "started accelerating\n";
+	else if (i < 0) {
+		cout << "stoped accelerating\n";
+		cout << "degree: " << ShipCords.degree << endl;
+		cout << "vdegree: " << ship_vec.degree << endl;
+	}
+
 	accelerating += i;
 }
 
@@ -65,17 +77,7 @@ void Ship::NextShip() {
 	}
 
 	PushCurrentShipCords();
-	ShipCords.x += ship_vec.X();
-	ShipCords.y -= ship_vec.Y(); // sdl y axis grows downwards
 
-	if (ShipCords.x > BOARD_X) 
-		ShipCords.x = 0;
-	else if (ShipCords.x < 0) 
-		ShipCords.x = BOARD_X;
-
-	if (ShipCords.y > BOARD_Y) 
-		ShipCords.y = 0;
-	else if (ShipCords.y < 0) 
-		ShipCords.y = BOARD_Y;
-
+	assign_limited(ShipCords.x,ship_vec.X(),BOARD_X);
+	assign_limited(ShipCords.y,(-1 * ship_vec.Y()),BOARD_Y);
 }

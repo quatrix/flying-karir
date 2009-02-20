@@ -1,6 +1,8 @@
 #include <math.h>
+#include <iostream>
 #include "Vector.hpp"
 
+using namespace std;
 
 Vector::Vector() : force(0), degree(0) {}
 
@@ -16,6 +18,8 @@ void Vector::AddVector(Vector vec) {
 	double sum_x = X() + vec.X();
 	double sum_y = Y() + vec.Y();
 
+//	cout << "(pre)  force: " << force << " degree: " << degree << endl;
+
 	force = sqrt(sum_x * sum_x + sum_y * sum_y);
 	degree = deg(atan(sum_y / sum_x));
 
@@ -25,6 +29,8 @@ void Vector::AddVector(Vector vec) {
 		degree += 180;
 	else if (sum_x > 0 && sum_y < 0) 
 		degree += 360; 
+
+//	cout << "(post) force: " << force << " degree: " << degree << endl;
 }
 
 void Vector::LimitForce(double max_force) {
