@@ -27,6 +27,9 @@ class DirectionDrawer : public CEvent {
 
 	private:
 	vector<Ship> ships;
+	double explosion_frames;
+	vector<Explosion> explosions;
+
 
 	public:
 	DirectionDrawer();
@@ -126,6 +129,8 @@ void DirectionDrawer::OnKeyUp(SDLKey sym, SDLMod mod, Uint16 unicode) {
 }
 
 void DirectionDrawer::Init() { 
+	explosion_frames = 18;
+
 	Ship ship;
 	ship.ship_id = 1;
 	ship.ShipCords.x = 500;
@@ -165,7 +170,7 @@ bool DirectionDrawer::PrepSDL() {
 		return false;
 
 	Surf_BG =  CSurface::OnLoad("./gfx/bg.png");
-	Surf_Explosion = CSurface::OnLoad("./gfx/exposion.png");
+	Surf_Explosion = CSurface::OnLoad("./gfx/explosion.png");
 
 	return true; 
 }
@@ -214,7 +219,16 @@ void DirectionDrawer::FindCollisions() {
 				{
 					// a is a missile hitting enemy ship b
 					if (a->fire_damage > 0 && b->hit_points > 0 and a->ship_id != b->ship_id) {
+						// create explosion
+						Explosion explosion;
+						explosion.Explosion_Cords = a->ShipCords;
+						explosion.frames = explosion_frames;
+						explosions.push_back(explosion);
+		
+						// lower hitpoints
 						b->hit_points -= a->fire_damage;
+
+						// delete missile
 						ships.erase(a);
 						a--;
 					}
@@ -304,6 +318,16 @@ void DirectionDrawer::Render() {
 		SDL_Surface* tmp_surf = sp->GetSurface((vsurf_sz)sp->ShipCords.degree);
 		CSurface::OnDraw(Surf_Display,tmp_surf, (sp->ShipCords.x - (tmp_surf->w / 2)), (sp->ShipCords.y - (tmp_surf->h /2 )));
 	}
+
+
+	// draw explosions
+	for (exp_iter ex = explosions.begin(); ex != explosions.end(); ex++) {
+		CSurface::OnDraw(Surf_Display,Surf_Explosion, ( ex->Explosion_Cords.x - 32 / 2), (ex->Explosion_Cords.y - 42 / 2),(ex->frame * 34),((int)ex->frame  / 6) * 42,34,42);
+		if (ex->frame++ > ex->frames) {
+			explosions.erase(ex);
+			ex--;
+		}
+	}	
 
 	
 	SDL_Flip(Surf_Display);

@@ -12,8 +12,8 @@
 #define DRAW_VECTORS	0
 #define DRAW_TRACE	0
 
-typedef std::vector<SDL_Surface*>::size_type vsurf_sz;
-typedef std::vector<Vector>::const_iterator vec_iter;
+
+
 
 
 class Cords {
@@ -25,7 +25,19 @@ class Cords {
 	Cords();
 };
 
+class Explosion {
+	public: 
+	Cords Explosion_Cords;
+	double frame;
+	double frames;
+	Explosion();
+};
+
 double assign_limited(double&,double,double);
 double return_limited(double, double);
+
+typedef std::vector<SDL_Surface*>::size_type vsurf_sz;
+typedef std::vector<Vector>::const_iterator vec_iter;
+typedef std::vector<Explosion>::iterator exp_iter;
 
 #endif

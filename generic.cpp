@@ -24,3 +24,4 @@ double return_limited(double value, double limit) {
 
 
 Cords::Cords(): x(0), y(0), degree(0) {}
+Explosion::Explosion(): frames(0),frame(0) {}
