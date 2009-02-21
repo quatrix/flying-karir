@@ -25,11 +25,9 @@ class DirectionDrawer : public CEvent {
 	SDL_Surface*	Surf_Ship2;
 	int Running;
 	int Pause;
-	int oioioi;
 
 	private:
-	Ship ship;
-//	Ship ship2;
+	vector<Ship> ships;
 
 	public:
 	DirectionDrawer();
@@ -58,24 +56,30 @@ void DirectionDrawer::OnKeyDown(SDLKey sym, SDLMod mod, Uint16 unicode) {
 			Running = 0;
 			break;
 
-		case SDLK_SPACE: 
+		case SDLK_p: 
 			Pause *= -1;
 			break;
 
+		case SDLK_SPACE: {
+			if (ships[0].CanFire()) 
+				ships.push_back(ships[0].Fire());
+			break;
+		}
+
 		case SDLK_RIGHT:
-			ship.Rotate((-1 * ship.rotate_speed));
+			ships[0].Rotate((-1 * ships[0].rotate_speed));
 			break;
 
 		case SDLK_LEFT:
-			ship.Rotate(ship.rotate_speed);
+			ships[0].Rotate(ships[0].rotate_speed);
 			break;
 
 		case SDLK_DOWN:
-			ship.Accelerating(-1);
+			ships[0].Accelerating(-1);
 			break;
 
 		case SDLK_UP:
-			ship.Accelerating(1);
+			ships[0].Accelerating(1);
 			
 			break;
 /*
@@ -95,19 +99,19 @@ void DirectionDrawer::OnKeyDown(SDLKey sym, SDLMod mod, Uint16 unicode) {
 void DirectionDrawer::OnKeyUp(SDLKey sym, SDLMod mod, Uint16 unicode) {
 	switch(sym) { 
 		case SDLK_RIGHT:
-			ship.Rotate(ship.rotate_speed);
+			ships[0].Rotate(ships[0].rotate_speed);
 			break;
 
 		case SDLK_LEFT:
-			ship.Rotate((-1 * ship.rotate_speed));
+			ships[0].Rotate((-1 * ships[0].rotate_speed));
 			break;
 
 		case SDLK_DOWN:
-			ship.Accelerating(1);
+			ships[0].Accelerating(1);
 			break;
 
 		case SDLK_UP:
-			ship.Accelerating(-1);
+			ships[0].Accelerating(-1);
 			break;
 /*
 // player 2
@@ -123,12 +127,19 @@ void DirectionDrawer::OnKeyUp(SDLKey sym, SDLMod mod, Uint16 unicode) {
 }
 
 void DirectionDrawer::Init() { 
+	Ship ship;
 	ship.ShipCords.x = 500;
 	ship.ShipCords.y = 500;
-	ship.acc_speed = 1.5;
+	ship.ShipCords.degree = 0;
+	ship.acc_speed = 2;
 	ship.max_speed = 10;
 	ship.rotate_speed = 10;
-	ship.LoadSurface("./gfx/Ship1.png");
+	ship.fire_cost = 10;
+	ship.hit_points = 100;
+	ship.LoadSurface("./gfx/Ship1.png",ship.ship_surf);
+	ship.LoadSurface("./gfx/Ship2.png",ship.missile_surf);
+
+	ships.push_back(ship);
 }
 
 bool DirectionDrawer::PrepSDL() { 
@@ -152,13 +163,15 @@ void DirectionDrawer::MainLoop() {
 
 	while (Running == 1) {
 
+
 		SDL_Event event;
 
 		while (SDL_PollEvent(&event))
 			OnEvent(&event);
 
 		if (Pause < 0) { 
-			ship.NextShip();
+			for (ship_iter sp = ships.begin(); sp != ships.end(); sp++) 
+				sp->NextShip();
 
 			Render();
 
@@ -166,7 +179,20 @@ void DirectionDrawer::MainLoop() {
 		}
 		
 		// reseting vectors	
-		ship.ClearVectors();
+		for (ship_iter sp = ships.begin(); sp != ships.end(); sp++) {
+			sp->ClearVectors();
+
+			// deleting expired missiles
+			if (sp->max_distance != 0 && sp->distance > sp->max_distance) {
+				ships.erase(sp);
+				sp--;
+			}
+
+		}
+
+
+
+
 
 	}
 }
@@ -174,7 +200,9 @@ void DirectionDrawer::MainLoop() {
 void DirectionDrawer::DrawVec(Vector v, Cords c,Uint8 color) {
 	double x = c.x + ( 100 * v.force * v.X());
 	double y = c.y - ( 100 * v.force * v.Y());
-	lineRGBA(Surf_Display,c.x,c.y,x,y,color,0 ,0 ,255);
+
+	cout << "cx: " << c.x << " cy: " << c.y << " x: " << x << " y: " << y  << endl;
+	lineRGBA(Surf_Display,c.x,c.y,x,y,0,color  / 2,color  ,255);
 }
 
 void DirectionDrawer::Render() {
@@ -183,27 +211,32 @@ void DirectionDrawer::Render() {
 
 
 	if (DRAW_VECTORS == 1) {
-		DrawVec(ship.ship_vec,ship.ShipCords,100);
+		for (ship_iter sp = ships.begin(); sp != ships.end(); sp++) 
+			DrawVec(sp->ship_vec,sp->ShipCords,100);
 
 		// draw ship_vec
 		Uint8 color = 200;
-		for (vec_iter i = ship.ship_vectors.begin(); i != ship.ship_vectors.end(); i++) {
-			DrawVec(*i,ship.ShipCords,color);
-			color += 30;
+		for (ship_iter sp = ships.begin(); sp != ships.end(); sp++) {
+			for (vec_iter i = sp->ship_vectors.begin(); i != sp->ship_vectors.end(); i++) {
+				DrawVec(*i,sp->ShipCords,color);
+				color += 30;
+			}
 		}
 	}
 	
 	if (DRAW_TRACE == 1) { 
 		// movement traces 
-		for (list<Cords>::const_iterator p = ship.Last_ShipCords.begin(); p != ship.Last_ShipCords.end(); p++) { 
-			filledCircleRGBA(Surf_Display,p->x,p->y,4,255,255,0,255);
-		}
+		for (ship_iter sp = ships.begin(); sp != ships.end(); sp++) 
+			for (list<Cords>::const_iterator p = sp->Last_ShipCords.begin(); p != sp->Last_ShipCords.end(); p++) { 
+				filledCircleRGBA(Surf_Display,p->x,p->y,4,255,255,0,255);
+			}
 	}
 
 	// ship itself
-	SDL_Surface* tmp_surf = ship.GetSurface((vsurf_sz)ship.ShipCords.degree);
-	CSurface::OnDraw(Surf_Display,tmp_surf, (ship.ShipCords.x - (tmp_surf->w / 2)), (ship.ShipCords.y - (tmp_surf->h /2 )));
-
+	for (ship_iter sp = ships.begin(); sp != ships.end(); sp++) {
+		SDL_Surface* tmp_surf = sp->GetSurface((vsurf_sz)sp->ShipCords.degree);
+		CSurface::OnDraw(Surf_Display,tmp_surf, (sp->ShipCords.x - (tmp_surf->w / 2)), (sp->ShipCords.y - (tmp_surf->h /2 )));
+	}
 
 	
 	SDL_Flip(Surf_Display);

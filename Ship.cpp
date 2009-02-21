@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <list>
 #include "ship.hpp"
 #include "Vector.hpp"
 
@@ -7,9 +8,9 @@
 using std::cout;
 using std::endl;
 using std::vector;
+using std::list;
 
-
-Ship::Ship() : accelerating(0), acc_speed(0), max_speed(0),  rotate(0),  rotate_speed(0) {}
+Ship::Ship() : fire_damage(0), fire_wait(0), fire_cost(0), hit_points(0), accelerating(0), acc_speed(0), max_speed(0),  rotate(0),  rotate_speed(0), max_distance(0), distance(0) {}
 
 void Ship::Accelerating(double i) {
 	if (i > 0)  
@@ -43,13 +44,13 @@ void Ship::Rotate(double i) {
 	rotate += i;
 }
 
-void Ship::LoadSurface(char* filename) {
+void Ship::LoadSurface(char* filename, std::vector<SDL_Surface*>& surf) {
 
 	SDL_Surface* origin =  CSurface::OnLoad(filename);
 
 	for (vsurf_sz i = 0; i <= 360; i++) {
 		SDL_Surface* tmp_surf = rotozoomSurface(origin, i, 1.0, 1);
-		ship_surf.push_back(tmp_surf);	
+		surf.push_back(tmp_surf);	
 	}
 	
 }
@@ -68,9 +69,6 @@ void Ship::Rotate() {
 }
 
 void Ship::NextShip() {
-
-
-
 	if (accelerating > 0) {
 		Vector acc_vec;
 		acc_vec.force  = acc_speed;
@@ -92,6 +90,15 @@ void Ship::NextShip() {
 
 	assign_limited(ShipCords.x,ship_vec.X(),BOARD_X);
 	assign_limited(ShipCords.y,(-1 * ship_vec.Y()),BOARD_Y);
+
+	// adding to total distance
+	distance += ship_vec.force;
+
+	// lowering fire_wait so we can fire again
+	if (fire_wait > 0)
+		fire_wait--;
+
+//	cout << "distance: " <<  distance << endl;
 }
 
 void Ship::PushNewVector(Vector new_vec) {
@@ -102,3 +109,23 @@ void Ship::ClearVectors() {
 	vector<Vector> new_ship_vectors;
 	ship_vectors = new_ship_vectors;
 }
+
+bool Ship::CanFire() { 
+	return fire_wait == 0;
+}
+
+Ship Ship::Fire() {
+	Ship new_missile;
+
+	new_missile.ShipCords = ShipCords;
+	new_missile.ship_surf = missile_surf;
+	new_missile.max_speed =	acc_speed * 10;
+	new_missile.max_distance = 500;
+
+	new_missile.ship_vec.force = acc_speed * 10;
+	new_missile.ship_vec.degree = ShipCords.degree;
+
+	fire_wait = fire_cost;
+	return new_missile;
+}
+

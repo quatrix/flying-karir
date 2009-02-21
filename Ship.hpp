@@ -16,30 +16,44 @@ class Ship {
 
 	private:
 	double rotate;
-
 	double accelerating;
-	std::vector<SDL_Surface*> ship_surf;
+
 
 	public:
 	Vector ship_vec;
 	std::vector<Vector> ship_vectors;
+	std::vector<SDL_Surface*> ship_surf;
+	std::vector<SDL_Surface*> missile_surf;
 
 	double rotate_speed;
 	double max_speed;
 	double acc_speed; 
+	double max_distance;
+	size_t distance;
+
+	double fire_wait;
+	double fire_cost;
+	double fire_damage;
+
+	double hit_points;
+		
 
 	public:
 	Ship();
+    	SDL_Surface* GetSurface(vsurf_sz);
 	void NextShip();
 	void Rotate(double);
 	void Rotate();
-	void LoadSurface(char*);
-    	SDL_Surface* GetSurface(vsurf_sz);
+	void LoadSurface(char*, std::vector<SDL_Surface*>&);
 	void Accelerate();
 	void Accelerating(double);
 	void PushCurrentShipCords();
 	void PushNewVector(Vector);
 	void ClearVectors();
+	bool CanFire();
+	Ship Fire();
 };
+
+typedef std::vector<Ship>::iterator ship_iter;
 
 #endif
