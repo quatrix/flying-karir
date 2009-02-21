@@ -2,7 +2,6 @@
 #include <iostream>
 #include "Vector.hpp"
 
-using namespace std;
 
 Vector::Vector() : force(0), degree(0) {}
 

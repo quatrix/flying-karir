@@ -6,7 +6,6 @@
 
 #include <SDL.h>
 #include <SDL_rotozoom.h>
-#include <SDL_draw.h>
 #include <SDL_framerate.h>
 #include <SDL_gfxPrimitives.h>
 
@@ -20,13 +19,13 @@ using namespace std;
 	
 class DirectionDrawer : public CEvent {
 	private:
-	FPSmanager* 	FPS_manager;	
 	SDL_Surface*	Surf_Display;
 	SDL_Surface* 	Surf_BG;
 	SDL_Surface*	Surf_Ship1;
 	SDL_Surface*	Surf_Ship2;
 	int Running;
 	int Pause;
+	int oioioi;
 
 	private:
 	Ship ship;
@@ -41,6 +40,7 @@ class DirectionDrawer : public CEvent {
 	void OnEvent(SDL_Event*);
 	void OnKeyDown(SDLKey, SDLMod, Uint16);
 	void OnKeyUp(SDLKey, SDLMod, Uint16);
+	void DirectionDrawer::DrawVec(Vector, Cords,Uint8);
 };
 
 DirectionDrawer::DirectionDrawer() {
@@ -123,12 +123,9 @@ void DirectionDrawer::OnKeyUp(SDLKey sym, SDLMod mod, Uint16 unicode) {
 }
 
 void DirectionDrawer::Init() { 
-	SDL_initFramerate( FPS_manager );
-	SDL_setFramerate( FPS_manager, FRAME_RATE );
-
 	ship.ShipCords.x = 500;
 	ship.ShipCords.y = 500;
-	ship.acc_speed = 3.5;
+	ship.acc_speed = 1.5;
 	ship.max_speed = 10;
 	ship.rotate_speed = 10;
 	ship.LoadSurface("./gfx/Ship1.png");
@@ -164,38 +161,48 @@ void DirectionDrawer::MainLoop() {
 			ship.NextShip();
 
 			Render();
-			SDL_framerateDelay( FPS_manager );
+
+			SDL_Delay(1000 / FRAME_RATE);
 		}
+		
+		// reseting vectors	
+		ship.ClearVectors();
 
 	}
 }
 
-void DirectionDrawer::Render() {
-	//Draw_Circle(Surf_Display,ship.x,ship.y,(rand() % 2), (rand()));
-	//Draw_Pixel(Surf_Display,ship.x,ship.y,(rand()));
-	//Draw_Line(Surf_Display,ship.last_x,ship.last_y,ship.x,ship.y,(rand()));
-//	SDL_FillRect(Surf_Display,NULL,0);
-//	CSurface::OnDraw(Surf_Display,Surf_Ship1,ship.x,ship.y,((int)ship.degree * 45),0,45,45);
-	//CSurface::OnDraw(Surf_Display,Surf_Ship,ship.x,ship.y, 0, 0, 30, 30);
+void DirectionDrawer::DrawVec(Vector v, Cords c,Uint8 color) {
+	double x = c.x + ( 100 * v.force * v.X());
+	double y = c.y - ( 100 * v.force * v.Y());
+	lineRGBA(Surf_Display,c.x,c.y,x,y,color,0 ,0 ,255);
+}
 
+void DirectionDrawer::Render() {
 	//background
 	CSurface::OnDraw(Surf_Display,Surf_BG, 0, 0);
 
-	// draw ship_vec
-	double line_end_x = ship.ShipCords.x + (  ship.ship_vec.force * ship.ship_vec.X());
-	double line_end_y = ship.ShipCords.y - (  ship.ship_vec.force * ship.ship_vec.Y());
-	lineRGBA(Surf_Display,ship.ShipCords.x,ship.ShipCords.y,line_end_x,line_end_y,255,0,0,255);
 
+	if (DRAW_VECTORS == 1) {
+		DrawVec(ship.ship_vec,ship.ShipCords,100);
 
-	// movement traces 
-	for (list<Cords>::const_iterator p = ship.Last_ShipCords.begin(); p != ship.Last_ShipCords.end(); p++) { 
-		Draw_FillCircle(Surf_Display,p->x,p->y,4,55555);
+		// draw ship_vec
+		Uint8 color = 200;
+		for (vec_iter i = ship.ship_vectors.begin(); i != ship.ship_vectors.end(); i++) {
+			DrawVec(*i,ship.ShipCords,color);
+			color += 30;
+		}
+	}
+	
+	if (DRAW_TRACE == 1) { 
+		// movement traces 
+		for (list<Cords>::const_iterator p = ship.Last_ShipCords.begin(); p != ship.Last_ShipCords.end(); p++) { 
+			filledCircleRGBA(Surf_Display,p->x,p->y,4,255,255,0,255);
+		}
 	}
 
 	// ship itself
 	SDL_Surface* tmp_surf = ship.GetSurface((vsurf_sz)ship.ShipCords.degree);
 	CSurface::OnDraw(Surf_Display,tmp_surf, (ship.ShipCords.x - (tmp_surf->w / 2)), (ship.ShipCords.y - (tmp_surf->h /2 )));
-
 
 
 	

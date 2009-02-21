@@ -16,12 +16,14 @@ class Ship {
 
 	private:
 	double rotate;
+
 	double accelerating;
 	std::vector<SDL_Surface*> ship_surf;
 
-
 	public:
 	Vector ship_vec;
+	std::vector<Vector> ship_vectors;
+
 	double rotate_speed;
 	double max_speed;
 	double acc_speed; 
@@ -33,9 +35,11 @@ class Ship {
 	void Rotate();
 	void LoadSurface(char*);
     	SDL_Surface* GetSurface(vsurf_sz);
-	void Accelerate(Vector);
+	void Accelerate();
 	void Accelerating(double);
 	void PushCurrentShipCords();
+	void PushNewVector(Vector);
+	void ClearVectors();
 };
 
 #endif

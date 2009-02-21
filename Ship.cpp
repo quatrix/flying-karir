@@ -1,8 +1,12 @@
-#include "ship.hpp"
 #include <iostream>
+#include <vector>
+#include "ship.hpp"
+#include "Vector.hpp"
+
 
 using std::cout;
 using std::endl;
+using std::vector;
 
 
 Ship::Ship() : accelerating(0), acc_speed(0), max_speed(0),  rotate(0),  rotate_speed(0) {}
@@ -26,8 +30,11 @@ void Ship::PushCurrentShipCords() {
 		Last_ShipCords.pop_back();
 }
 
-void Ship::Accelerate(Vector acc_vec) { 
-	ship_vec.AddVector(acc_vec);
+void Ship::Accelerate() { 
+	for (vec_iter i = ship_vectors.begin(); i != ship_vectors.end(); i++) {
+		ship_vec.AddVector(*i);
+	}
+	
 	ship_vec.LimitForce(max_speed);
 }
 
@@ -61,23 +68,37 @@ void Ship::Rotate() {
 }
 
 void Ship::NextShip() {
-	Rotate();
-	
+
+
+
 	if (accelerating > 0) {
 		Vector acc_vec;
 		acc_vec.force  = acc_speed;
 		acc_vec.degree = ShipCords.degree;
-		Accelerate(acc_vec);
+		PushNewVector(acc_vec);
 	}
 	else if (accelerating < 0) {
 		Vector acc_vec;
 		acc_vec.force  = acc_speed;
 		acc_vec.degree = ShipCords.degree - 180;
-		Accelerate(acc_vec);
+		PushNewVector(acc_vec);
 	}
+
+
+	Rotate();
+	Accelerate();	
 
 	PushCurrentShipCords();
 
 	assign_limited(ShipCords.x,ship_vec.X(),BOARD_X);
 	assign_limited(ShipCords.y,(-1 * ship_vec.Y()),BOARD_Y);
+}
+
+void Ship::PushNewVector(Vector new_vec) {
+	ship_vectors.push_back(new_vec);
+}
+
+void Ship::ClearVectors() { 
+	vector<Vector> new_ship_vectors;
+	ship_vectors = new_ship_vectors;
 }

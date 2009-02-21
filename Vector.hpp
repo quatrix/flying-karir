@@ -1,7 +1,6 @@
 #ifndef _VECTOR_HPP
 #define _VECTOR_HPP
 
-#include "generic.hpp"
 
 class Vector {
 	public:
