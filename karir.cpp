@@ -82,7 +82,10 @@ void DirectionDrawer::OnKeyDown(SDLKey sym, SDLMod mod, Uint16 unicode) {
 
 		case SDLK_UP:
 			ships[0].Accelerating(1);
-			
+			break;
+
+		case SDLK_z:
+			Init();
 			break;
 /*
 // player 2 		
@@ -129,6 +132,8 @@ void DirectionDrawer::OnKeyUp(SDLKey sym, SDLMod mod, Uint16 unicode) {
 }
 
 void DirectionDrawer::Init() { 
+	vector<Ship> empty_ship_vec;
+	ships = empty_ship_vec;
 	explosion_frames = 18;
 
 	Ship ship;
@@ -221,7 +226,7 @@ void DirectionDrawer::FindCollisions() {
 					if (a->fire_damage > 0 && b->hit_points > 0 and a->ship_id != b->ship_id) {
 						// create explosion
 						Explosion explosion;
-						explosion.Explosion_Cords = a->ShipCords;
+						explosion.Explosion_Cords = b->ShipCords;
 						explosion.frames = explosion_frames;
 						explosions.push_back(explosion);
 		
@@ -229,8 +234,7 @@ void DirectionDrawer::FindCollisions() {
 						b->hit_points -= a->fire_damage;
 
 						// delete missile
-						ships.erase(a);
-						a--;
+						ships.erase(a--);
 					}
 				}
 			
@@ -273,6 +277,9 @@ void DirectionDrawer::MainLoop() {
 
 		}
 
+		for (ship_iter sp = ships.begin(); sp != ships.end(); sp++)
+			if (sp->hit_points <= 0)
+				ships.erase(sp--);
 
 
 	}

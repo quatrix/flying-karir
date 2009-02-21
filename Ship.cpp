@@ -115,6 +115,7 @@ Ship Ship::Fire() {
 	new_missile.max_speed =	acc_speed * 10;
 	new_missile.max_distance = 500;
 	new_missile.ship_id = ship_id;
+	new_missile.hit_points = 1;
 
 	new_missile.ship_vec.force = acc_speed * 10;
 	new_missile.ship_vec.degree = ShipCords.degree;
