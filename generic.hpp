@@ -7,7 +7,7 @@
 
 #define BOARD_X		800
 #define BOARD_Y		600
-#define SHIP_TRACE	50
+#define SHIP_TRACE	5
 #define FRAME_RATE	30
 #define DRAW_VECTORS	0
 #define DRAW_TRACE	0

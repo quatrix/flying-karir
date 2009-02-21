@@ -10,16 +10,9 @@ using std::endl;
 using std::vector;
 using std::list;
 
-Ship::Ship() : fire_damage(0), fire_wait(0), fire_cost(0), hit_points(0), accelerating(0), acc_speed(0), max_speed(0),  rotate(0),  rotate_speed(0), max_distance(0), distance(0) {}
+Ship::Ship() : ship_id(0), fire_damage(0), fire_wait(0), fire_cost(0), hit_points(0), accelerating(0), acc_speed(0), max_speed(0),  rotate(0),  rotate_speed(0), max_distance(0), distance(0) {}
 
 void Ship::Accelerating(double i) {
-	if (i > 0)  
-		cout << "started accelerating\n";
-	else if (i < 0) {
-		cout << "stoped accelerating\n";
-		cout << "degree: " << ShipCords.degree << endl;
-		cout << "vdegree: " << ship_vec.degree << endl;
-	}
 
 	accelerating += i;
 }
@@ -121,9 +114,11 @@ Ship Ship::Fire() {
 	new_missile.ship_surf = missile_surf;
 	new_missile.max_speed =	acc_speed * 10;
 	new_missile.max_distance = 500;
+	new_missile.ship_id = ship_id;
 
 	new_missile.ship_vec.force = acc_speed * 10;
 	new_missile.ship_vec.degree = ShipCords.degree;
+	new_missile.fire_damage = 10;
 
 	fire_wait = fire_cost;
 	return new_missile;

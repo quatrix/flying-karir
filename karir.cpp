@@ -21,8 +21,7 @@ class DirectionDrawer : public CEvent {
 	private:
 	SDL_Surface*	Surf_Display;
 	SDL_Surface* 	Surf_BG;
-	SDL_Surface*	Surf_Ship1;
-	SDL_Surface*	Surf_Ship2;
+	SDL_Surface* 	Surf_Explosion;
 	int Running;
 	int Pause;
 
@@ -38,14 +37,14 @@ class DirectionDrawer : public CEvent {
 	void OnEvent(SDL_Event*);
 	void OnKeyDown(SDLKey, SDLMod, Uint16);
 	void OnKeyUp(SDLKey, SDLMod, Uint16);
-	void DirectionDrawer::DrawVec(Vector, Cords,Uint8);
+	void DrawVec(Vector, Cords,Uint8);
+	void FindCollisions(void);
 };
 
 DirectionDrawer::DirectionDrawer() {
 	Surf_Display	= NULL;
-	Surf_Ship1	= NULL;
-	Surf_Ship2	= NULL;
 	Surf_BG		= NULL;
+	Surf_Explosion	= NULL;
 	Running		= 1;
 	Pause		= -1;
 }
@@ -128,6 +127,7 @@ void DirectionDrawer::OnKeyUp(SDLKey sym, SDLMod mod, Uint16 unicode) {
 
 void DirectionDrawer::Init() { 
 	Ship ship;
+	ship.ship_id = 1;
 	ship.ShipCords.x = 500;
 	ship.ShipCords.y = 500;
 	ship.ShipCords.degree = 0;
@@ -137,9 +137,24 @@ void DirectionDrawer::Init() {
 	ship.fire_cost = 10;
 	ship.hit_points = 100;
 	ship.LoadSurface("./gfx/Ship1.png",ship.ship_surf);
-	ship.LoadSurface("./gfx/Ship2.png",ship.missile_surf);
+	ship.LoadSurface("./gfx/fire.png",ship.missile_surf);
 
 	ships.push_back(ship);
+// seconds ship 
+	Ship ship2;
+	ship.ship_id = 2;
+	ship2.ShipCords.x = 500;
+	ship2.ShipCords.y = 300;
+	ship2.ShipCords.degree = 0;
+	ship2.acc_speed = 2;
+	ship2.max_speed = 10;
+	ship2.rotate_speed = 10;
+	ship2.fire_cost = 10;
+	ship2.hit_points = 100;
+	ship2.LoadSurface("./gfx/Ship2.png",ship2.ship_surf);
+	ship2.LoadSurface("./gfx/fire.png",ship2.missile_surf);
+
+	ships.push_back(ship2);
 }
 
 bool DirectionDrawer::PrepSDL() { 
@@ -150,12 +165,64 @@ bool DirectionDrawer::PrepSDL() {
 		return false;
 
 	Surf_BG =  CSurface::OnLoad("./gfx/bg.png");
+	Surf_Explosion = CSurface::OnLoad("./gfx/exposion.png");
 
 	return true; 
 }
 
 void DirectionDrawer::OnEvent(SDL_Event* Event) {
 	CEvent::OnEvent(Event);
+}
+
+bool Collides(Cords a_cords,SDL_Surface* a_surf, Cords b_cords, SDL_Surface* b_surf) { 
+	double ax1 = a_cords.x;
+	double ay1 = a_cords.y;
+	double ax2 = ax1 + a_surf->w;
+	double ay2 = ay1 + a_surf->h;
+
+	double bx1 = b_cords.x;
+	double by1 = b_cords.y;
+	double bx2 = bx1 + b_surf->w;
+	double by2 = by1 + b_surf->h;
+
+
+	if (ax1 >= bx1 && ax1 <= bx2 && ay1 >= by1 && ay1 <= by2)
+		return true;
+
+	if (ax2 >= bx1 && ax2 <= bx2 && ay2 >= by1 && ay2 <= by2) 
+		return true;
+
+	return false;
+}
+
+void DirectionDrawer::FindCollisions() { 
+	// i guess this is a lame collision detection algorithm
+	// but i just want to get it working... :)
+
+
+	// go over all objects
+	for (ship_iter a = ships.begin(); a != ships.end(); a++) {
+		// and go over all objects again
+		for (ship_iter b = ships.begin(); b != ships.end(); b++) {
+			// if it isn't the same object, check for collision
+			if (a != b) {
+				if (Collides(
+					a->ShipCords, 
+					a->GetSurface((vsurf_sz)a->ShipCords.degree), 
+					b->ShipCords, 
+					b->GetSurface((vsurf_sz)a->ShipCords.degree)))
+				{
+					// a is a missile hitting enemy ship b
+					if (a->fire_damage > 0 && b->hit_points > 0 and a->ship_id != b->ship_id) {
+						b->hit_points -= a->fire_damage;
+						ships.erase(a);
+						a--;
+					}
+				}
+			
+			}
+		}
+	}
 }
 
 void DirectionDrawer::MainLoop() {
@@ -173,6 +240,8 @@ void DirectionDrawer::MainLoop() {
 			for (ship_iter sp = ships.begin(); sp != ships.end(); sp++) 
 				sp->NextShip();
 
+			FindCollisions();
+
 			Render();
 
 			SDL_Delay(1000 / FRAME_RATE);
@@ -189,8 +258,6 @@ void DirectionDrawer::MainLoop() {
 			}
 
 		}
-
-
 
 
 

@@ -25,6 +25,7 @@ class Ship {
 	std::vector<SDL_Surface*> ship_surf;
 	std::vector<SDL_Surface*> missile_surf;
 
+	int    ship_id;
 	double rotate_speed;
 	double max_speed;
 	double acc_speed; 
@@ -36,6 +37,8 @@ class Ship {
 	double fire_damage;
 
 	double hit_points;
+
+	
 		
 
 	public:
