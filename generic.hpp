@@ -10,7 +10,7 @@
 #define SHIP_TRACE	5
 #define FRAME_RATE	30
 #define DRAW_VECTORS	0
-#define DRAW_TRACE	0
+#define DRAW_TRACE	1
 
 
 

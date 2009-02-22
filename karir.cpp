@@ -62,72 +62,170 @@ void DirectionDrawer::OnKeyDown(SDLKey sym, SDLMod mod, Uint16 unicode) {
 			Pause *= -1;
 			break;
 
-		case SDLK_SPACE: {
-			if (ships[0].CanFire()) 
-				ships.push_back(ships[0].Fire());
-			break;
-		}
-
-		case SDLK_RIGHT:
-			ships[0].Rotate((-1 * ships[0].rotate_speed));
-			break;
-
-		case SDLK_LEFT:
-			ships[0].Rotate(ships[0].rotate_speed);
-			break;
-
-		case SDLK_DOWN:
-			ships[0].Accelerating(-1);
-			break;
-
-		case SDLK_UP:
-			ships[0].Accelerating(1);
-			break;
-
 		case SDLK_z:
 			Init();
 			break;
-/*
+
+// player 1
+		case SDLK_SPACE: 
+			for (ship_iter a = ships.begin(); a != ships.end(); a++) 
+				if (a->ship_id == 1) {
+					if (a->CanFire())
+						ships.push_back(a->Fire());
+					break;
+				}
+			break;
+
+		case SDLK_RIGHT:
+			for (ship_iter a = ships.begin(); a != ships.end(); a++) 
+				if (a->ship_id == 1) {
+					a->Rotate((-1 * a->rotate_speed));
+					break;
+				}
+			break;
+
+		case SDLK_LEFT:
+			for (ship_iter a = ships.begin(); a != ships.end(); a++) 
+				if (a->ship_id == 1) {
+					a->Rotate(a->rotate_speed);
+					break;
+				}
+			break;
+
+		case SDLK_DOWN:
+			for (ship_iter a = ships.begin(); a != ships.end(); a++) 
+				if (a->ship_id == 1) {
+					a->Accelerating(-1);
+					break;
+				}
+			break;
+
+		case SDLK_UP: 
+			for (ship_iter a = ships.begin(); a != ships.end(); a++) 
+				if (a->ship_id == 1) {
+					a->Accelerating(1);
+					break;
+				}
+			break;
+
+
+
 // player 2 		
+
+		case SDLK_LCTRL: 
+			for (ship_iter a = ships.begin(); a != ships.end(); a++) 
+				if (a->ship_id == 2) {
+					if (a->CanFire())
+						ships.push_back(a->Fire());
+					break;
+				}
+			break;
+
 		case SDLK_d:
-			ship2.Rotate((-1 * ship2.rotate_speed));
+			for (ship_iter a = ships.begin(); a != ships.end(); a++) 
+				if (a->ship_id == 2) {
+					a->Rotate((-1 * a->rotate_speed));
+					break;
+				}
 			break;
 
 		case SDLK_a:
-			ship2.Rotate(ship2.rotate_speed);
+			for (ship_iter a = ships.begin(); a != ships.end(); a++) 
+				if (a->ship_id == 2) {
+					a->Rotate(a->rotate_speed);
+					break;
+				}
 			break;
-*/
+
+		case SDLK_s:
+			for (ship_iter a = ships.begin(); a != ships.end(); a++) 
+				if (a->ship_id == 2) {
+					a->Accelerating(-1);
+					break;
+				}
+			break;
+
+		case SDLK_w: 
+			for (ship_iter a = ships.begin(); a != ships.end(); a++) 
+				if (a->ship_id == 2) {
+					a->Accelerating(1);
+					break;
+				}
+			break;
 
 	}
 }
 
 void DirectionDrawer::OnKeyUp(SDLKey sym, SDLMod mod, Uint16 unicode) {
 	switch(sym) { 
+// player 1
 		case SDLK_RIGHT:
-			ships[0].Rotate(ships[0].rotate_speed);
+			for (ship_iter a = ships.begin(); a != ships.end(); a++) 
+				if (a->ship_id == 1) {
+					a->Rotate((a->rotate_speed));
+					break;
+				}
 			break;
 
 		case SDLK_LEFT:
-			ships[0].Rotate((-1 * ships[0].rotate_speed));
+			for (ship_iter a = ships.begin(); a != ships.end(); a++) 
+				if (a->ship_id == 1) {
+					a->Rotate(-1 * a->rotate_speed);
+					break;
+				}
 			break;
 
 		case SDLK_DOWN:
-			ships[0].Accelerating(1);
+			for (ship_iter a = ships.begin(); a != ships.end(); a++) 
+				if (a->ship_id == 1) {
+					a->Accelerating(1);
+					break;
+				}
 			break;
 
-		case SDLK_UP:
-			ships[0].Accelerating(-1);
+		case SDLK_UP: 
+			for (ship_iter a = ships.begin(); a != ships.end(); a++) 
+				if (a->ship_id == 1) {
+					a->Accelerating(-1);
+					break;
+				}
 			break;
-/*
+
+
+
 // player 2
 		case SDLK_d:
-			ship2.Rotate(ship2.rotate_speed);
+			for (ship_iter a = ships.begin(); a != ships.end(); a++) 
+				if (a->ship_id == 2) {
+					a->Rotate((a->rotate_speed));
+					break;
+				}
 			break;
 
 		case SDLK_a:
-			ship2.Rotate((-1 * ship2.rotate_speed));
+			for (ship_iter a = ships.begin(); a != ships.end(); a++) 
+				if (a->ship_id == 2) {
+					a->Rotate(-1 * a->rotate_speed);
+					break;
+				}
 			break;
-*/
+
+		case SDLK_s:
+			for (ship_iter a = ships.begin(); a != ships.end(); a++) 
+				if (a->ship_id == 2) {
+					a->Accelerating(1);
+					break;
+				}
+			break;
+
+		case SDLK_w: 
+			for (ship_iter a = ships.begin(); a != ships.end(); a++) 
+				if (a->ship_id == 2) {
+					a->Accelerating(-1);
+					break;
+				}
+			break;
+
 	}
 }
 
@@ -152,7 +250,7 @@ void DirectionDrawer::Init() {
 	ships.push_back(ship);
 // seconds ship 
 	Ship ship2;
-	ship.ship_id = 2;
+	ship2.ship_id = 2;
 	ship2.ShipCords.x = 500;
 	ship2.ShipCords.y = 300;
 	ship2.ShipCords.degree = 0;
@@ -223,7 +321,7 @@ void DirectionDrawer::FindCollisions() {
 					b->GetSurface((vsurf_sz)a->ShipCords.degree)))
 				{
 					// a is a missile hitting enemy ship b
-					if (a->fire_damage > 0 && b->hit_points > 0 and a->ship_id != b->ship_id) {
+					if (a->fire_damage > 0 && b->hit_points > 0 and a->missile_id != b->ship_id) {
 						// create explosion
 						Explosion explosion;
 						explosion.Explosion_Cords = b->ShipCords;
@@ -232,9 +330,7 @@ void DirectionDrawer::FindCollisions() {
 		
 						// lower hitpoints
 						b->hit_points -= a->fire_damage;
-
-						// delete missile
-						ships.erase(a--);
+						a->hit_points--;
 					}
 				}
 			

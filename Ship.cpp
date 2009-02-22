@@ -10,7 +10,7 @@ using std::endl;
 using std::vector;
 using std::list;
 
-Ship::Ship() : ship_id(0), fire_damage(0), fire_wait(0), fire_cost(0), hit_points(0), accelerating(0), acc_speed(0), max_speed(0),  rotate(0),  rotate_speed(0), max_distance(0), distance(0) {}
+Ship::Ship() : missile_id(-1), ship_id(0), fire_damage(0), fire_wait(0), fire_cost(0), hit_points(0), accelerating(0), acc_speed(0), max_speed(0),  rotate(0),  rotate_speed(0), max_distance(0), distance(0) {}
 
 void Ship::Accelerating(double i) {
 
@@ -114,7 +114,7 @@ Ship Ship::Fire() {
 	new_missile.ship_surf = missile_surf;
 	new_missile.max_speed =	acc_speed * 10;
 	new_missile.max_distance = 500;
-	new_missile.ship_id = ship_id;
+	new_missile.missile_id = ship_id;
 	new_missile.hit_points = 1;
 
 	new_missile.ship_vec.force = acc_speed * 10;
